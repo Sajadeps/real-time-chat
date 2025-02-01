@@ -1,25 +1,27 @@
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { setUsername, setRoom, setShowChat } from './redux/action'
+import React, { useState } from 'react'
 import io from 'socket.io-client'
 import { Chat } from './components/Chat'
-import "./App.css"
-import "./index.css"
+
 
 const socket = io.connect("http://localhost:1000")
 
-const App = () => {
-  const dispatch = useDispatch()
-  const { username, room, showChat } = useSelector((state) => state.chat)
 
-  const joinChat = () => {
-    if (username !== "" && room !== "") {
-      socket.emit("join_room", room);
-      dispatch(setShowChat(true))
-    } else {
-      alert("please fill the details to join room")
-    }
-  };
+const App = () => {
+
+const [username, setUsername] = useState("");
+const [room, setRoom] = useState("");
+const [showChat, setShowChat] = useState(false)
+
+
+
+const joinChat = () => {
+  if (username !== "" && room !== "") {
+    socket.emit("join_room", room);
+    setShowChat(true)
+
+  }
+};
+
 
   return (
     <>
@@ -29,21 +31,23 @@ const App = () => {
           <input
             type="text"
             placeholder="Enter Your Name"
-            value={username}
-            onChange={(e) => dispatch(setUsername(e.target.value))}
+            onChange={(e) => setUsername(e.target.value)}
           />
           <input
             type="text"
             placeholder="Enter Chat Room"
-            value={room}
-            onChange={(e) => dispatch(setRoom(e.target.value))}
+            onChange={(e) => setRoom(e.target.value)}
           />
           <button onClick={joinChat}>Join</button>
         </div>
       )}
-      {showChat && (
-        <Chat socket={socket} username={username} room={room} />
-      )}
+{
+  showChat &&
+  (
+    <Chat socket={socket} username={username} room={room} />
+
+  )
+}
     </>
   );
 }

@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setCurrentMessage, addMessage } from "../redux/action";
+import React, { useState, useEffect, useRef } from "react";
+
+
 
 export const Chat = ({ socket, username, room }) => {
-  const dispatch = useDispatch();
-  const { currentMessage, messageList } = useSelector((state) => state.chat);
+  const [currentMessage, setcurrentMessage] = useState("");
+  const [messageList, setMessageList] = useState([]);
+
 
   const sendMessage = async () => {
     if (currentMessage !== "") {
@@ -20,27 +21,29 @@ export const Chat = ({ socket, username, room }) => {
       };
 
       await socket.emit("send_message", messageData);
-      dispatch(addMessage(messageData)); // Add message to the Redux store
-      dispatch(setCurrentMessage("")); // Clear current message
+      setMessageList((list) => [...list, messageData]);
+      setcurrentMessage("");
+
     }
   };
 
   useEffect(() => {
     const handleReceiveMsg = (data) => {
-      dispatch(addMessage(data)); // Add received message to the Redux store
+      setMessageList((list) => [...list, data]);
     };
     socket.on("receive_message", handleReceiveMsg);
 
     return () => {
       socket.off("receive_message", handleReceiveMsg);
     };
-  }, [socket, dispatch]);
+  }, [socket]);
 
-  const containRef = useRef(null);
+  const containRef = useRef(null)
 
   useEffect(() => {
     containRef.current.scrollTop = containRef.current.scrollHeight;
-  }, [messageList]);
+  }, [messageList])
+  
 
   return (
     <>
@@ -60,13 +63,13 @@ export const Chat = ({ socket, username, room }) => {
               <div
                 key={data.id}
                 className="message_content"
-                id={username === data.author ? "you" : "other"}
+                id={username == data.author ? "you" : "other"}
               >
                 <div>
-                  <div className="msg" id={username === data.author ? "y" : "b"}>
+                  <div className="msg" id={username == data.author ? "y" : "b"}>
                     <p>{data.message}</p>
                   </div>
-                  <div className="msg_detail" style={{ marginTop: "10px" }}>
+                  <div className="msg_detail">
                     <p>{data.author}</p>
                     <p>{data.time}</p>
                   </div>
@@ -79,7 +82,7 @@ export const Chat = ({ socket, username, room }) => {
               value={currentMessage}
               type="text"
               placeholder="Type Your Message"
-              onChange={(e) => dispatch(setCurrentMessage(e.target.value))}
+              onChange={(e) => setcurrentMessage(e.target.value)}
               onKeyPress={(e) => {
                 e.key === "Enter" && sendMessage();
               }}
